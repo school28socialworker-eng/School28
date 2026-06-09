@@ -95,6 +95,11 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#1a4fa8}
 .pm-add-form{background:#f8f9fb;border-radius:8px;padding:14px;margin-top:12px;border:1px solid #eee}
 .pm-add-form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .clickable-name{cursor:pointer;color:#1a4fa8;text-decoration:underline;text-underline-offset:2px}
+.drop-item{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.drop-item:last-child{border-bottom:none}
+.drop-item:hover{background:#f0f5ff}
+.drop-item-ner{font-weight:500;color:#1a1a1a}
+.drop-item-sub{font-size:12px;color:#888}
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f2f5}
 .login-box{background:#fff;border-radius:12px;padding:36px 32px;width:320px;border:1px solid #e0e0e0;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .login-box h2{font-size:20px;font-weight:700;color:#1a4fa8;margin-bottom:4px}
@@ -150,14 +155,21 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#1a4fa8}
     <div class="card">
       <div class="card-title">Ирцийн бүртгэл нэмэх</div>
       <div id="msg-burgel"></div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Код эсвэл нэрээр хайх</label>
+        <div style="position:relative">
+          <input type="text" id="b-search" placeholder="Код эсвэл нэр бичнэ үү..." oninput="searchSuragch()" autocomplete="off">
+          <div id="b-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d0d0d0;border-radius:7px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:50;max-height:200px;overflow-y:auto"></div>
+        </div>
+      </div>
       <div class="row">
         <div class="field">
-          <label>Сурагчийн код</label>
-          <input type="text" id="b-kod" placeholder="жнь: 28050101" oninput="kodLookup()">
+          <label>Код <span id="b-hint" class="hint-text"></span></label>
+          <input type="text" id="b-kod" placeholder="Дээрээс сонгоно уу" readonly style="background:#f8f9fb">
         </div>
         <div class="field">
-          <label>Овог нэр <span id="b-hint" class="hint-text"></span></label>
-          <input type="text" id="b-ner" placeholder="Кодоо оруулбал автоматаар гарна" readonly style="background:#f8f9fb">
+          <label>Овог нэр</label>
+          <input type="text" id="b-ner" placeholder="Автоматаар гарна" readonly style="background:#f8f9fb">
         </div>
       </div>
       <div class="row">
@@ -384,8 +396,16 @@ function applyRoleUI(){
 
 // ===== САНАХ ОЙ (cache) =====
 async function loadSurCache(){
-  const {data}=await sb.from('suragchid').select('kod,ner,angi,huvis')
-  if(data) data.forEach(s=>surCache[s.kod]=s)
+  // Supabase 1000 мөрийн хязгаартай тул бүгдийг хуваан авна
+  let from=0, batchSize=1000, allData=[]
+  while(true){
+    const {data,error}=await sb.from('suragchid').select('kod,ner,angi,huvis').range(from,from+batchSize-1)
+    if(error||!data||data.length===0) break
+    allData=allData.concat(data)
+    if(data.length<batchSize) break
+    from+=batchSize
+  }
+  allData.forEach(s=>surCache[s.kod]=s)
 }
 
 // ===== TAB =====
@@ -654,23 +674,47 @@ async function deleteSuragch(kod){
 }
 
 // ===== БҮРТГЭЛ =====
-async function kodLookup(){
-  const kod=document.getElementById('b-kod').value.trim()
-  let s=surCache[kod]
-  if(!s&&kod.length>=6){
-    const {data}=await sb.from('suragchid').select('kod,ner,angi').eq('kod',kod).single()
-    if(data){surCache[kod]=data;s=data}
-  }
-  if(s){
-    document.getElementById('b-ner').value=s.ner
-    document.getElementById('b-angi').value=s.angi||''
-    document.getElementById('b-hint').textContent='✓'
-  } else {
-    document.getElementById('b-ner').value=''
-    document.getElementById('b-angi').value=''
-    document.getElementById('b-hint').textContent=''
-  }
+function searchSuragch(){
+  const q=document.getElementById('b-search').value.trim().toLowerCase()
+  const dd=document.getElementById('b-dropdown')
+  // Сонголт арилгах
+  document.getElementById('b-kod').value=''
+  document.getElementById('b-ner').value=''
+  document.getElementById('b-angi').value=''
+  document.getElementById('b-hint').textContent=''
+  if(!q||q.length<1){dd.style.display='none';return}
+  const matches=Object.keys(surCache).filter(k=>
+    k.includes(q)||surCache[k].ner.toLowerCase().includes(q)
+  ).slice(0,10)
+  if(!matches.length){dd.style.display='none';return}
+  dd.innerHTML=matches.map(k=>{
+    const s=surCache[k]
+    return '<div class="drop-item" onclick="selectSuragch(\'' + k + '\')">'+
+      '<span class="drop-item-ner">'+s.ner+'</span>'+
+      '<span class="drop-item-sub"><span class="code-pill" style="font-size:11px">'+k+'</span>'+(s.angi?' · '+s.angi:'')+'</span>'+
+    '</div>'
+  }).join('')
+  dd.style.display='block'
 }
+
+function selectSuragch(kod){
+  const s=surCache[kod]
+  if(!s)return
+  document.getElementById('b-search').value=s.ner
+  document.getElementById('b-kod').value=kod
+  document.getElementById('b-ner').value=s.ner
+  document.getElementById('b-angi').value=s.angi||''
+  document.getElementById('b-hint').textContent='✓'
+  document.getElementById('b-dropdown').style.display='none'
+}
+
+// Dropdown-г хаах (гадна дарахад)
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#b-search')&&!e.target.closest('#b-dropdown')){
+    const dd=document.getElementById('b-dropdown')
+    if(dd)dd.style.display='none'
+  }
+})
 
 async function nemehBurtgel(){
   const kod=document.getElementById('b-kod').value.trim()
