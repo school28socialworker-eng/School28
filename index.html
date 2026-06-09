@@ -634,10 +634,10 @@ async function deleteSelected(){
   if(!selectedKods.size)return
   if(!confirm(selectedKods.size+' сурагчийг устгах уу?'))return
   showLoad()
-  for(const k of selectedKods){
-    await sb.from('suragchid').delete().eq('kod',k)
-    delete surCache[k]
-  }
+  const kods=[...selectedKods]
+  // Нэг удаад бүгдийг устгах
+  await sb.from('suragchid').delete().in('kod',kods)
+  kods.forEach(k=>delete surCache[k])
   selectedKods.clear()
   hideLoad()
   renderSuragchid()
