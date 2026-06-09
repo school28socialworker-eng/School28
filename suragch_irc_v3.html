@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ирцийн бүртгэл — 28-р сургууль</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh}
+.header{background:#1a4fa8;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.header-left h1{font-size:16px;font-weight:600}
+.header-left p{font-size:12px;opacity:0.7;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.user-badge{font-size:12px;background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px}
+.container{max-width:820px;margin:0 auto;padding:20px 16px}
+.tabs{display:flex;background:#fff;border-radius:10px;border:1px solid #e0e0e0;overflow:hidden;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.tab{flex:1;padding:11px 6px;font-size:13px;cursor:pointer;border:none;background:none;color:#666;font-family:inherit;border-bottom:2px solid transparent;transition:all 0.15s}
+.tab.active{color:#1a4fa8;border-bottom:2px solid #1a4fa8;background:#f0f5ff;font-weight:600}
+.tab:hover:not(.active){background:#f9f9f9}
+.tab:disabled{opacity:0.3;cursor:not-allowed}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border-radius:10px;border:1px solid #e0e0e0;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-title{font-size:13px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f0f0f0}
+label{font-size:12px;color:#666;display:block;margin-bottom:5px;font-weight:500}
+input[type=text],input[type=date],input[type=password],select,textarea{width:100%;padding:9px 12px;border:1px solid #d0d0d0;border-radius:7px;font-size:14px;font-family:inherit;color:#1a1a1a;background:#fff;outline:none;transition:border 0.15s}
+input:focus,select:focus,textarea:focus{border-color:#1a4fa8;box-shadow:0 0 0 3px rgba(26,79,168,0.08)}
+textarea{height:68px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field{margin-bottom:14px}
+.btn{padding:9px 18px;font-size:13px;cursor:pointer;border-radius:7px;font-family:inherit;font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:#1a4fa8;color:#fff;border:none}
+.btn-primary:hover{background:#153f8a}
+.btn-success{background:#0f766e;color:#fff;border:none}
+.btn-success:hover{background:#0d6460}
+.btn-outline{background:#fff;color:#444;border:1px solid #d0d0d0}
+.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:#cc3333;color:#fff;border:none}
+.btn-danger:hover{background:#aa2222}
+.btn-danger-sm{background:none;border:none;color:#cc3333;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;font-family:inherit}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.badge-hots{background:#fff3cd;color:#856404}
+.badge-tas{background:#fde8e8;color:#9b1c1c}
+.badge-ovch{background:#dbeafe;color:#1e3a8a}
+.msg{font-size:13px;padding:10px 14px;border-radius:7px;margin-bottom:14px}
+.msg-ok{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+.msg-err{background:#fde8e8;color:#9b1c1c;border:1px solid #fca5a5}
+.msg-info{background:#dbeafe;color:#1e3a8a;border:1px solid #93c5fd}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fb;padding:9px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e8e8e8;font-size:12px}
+td{padding:9px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+.code-pill{font-size:12px;font-weight:600;background:#f0f5ff;color:#1a4fa8;padding:3px 9px;border-radius:20px;border:1px solid #c7d9f8;white-space:nowrap}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;padding:10px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:14px;font-family:inherit;outline:none}
+.search-bar input:focus{border-color:#1a4fa8;box-shadow:0 0 0 3px rgba(26,79,168,0.08)}
+.search-bar select{padding:10px 12px;border:1px solid #d0d0d0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:#f8f9fb;border-radius:9px;padding:14px;text-align:center;border:1px solid #ebebeb}
+.stat-num{font-size:26px;font-weight:700}
+.stat-lbl{font-size:11px;color:#888;margin-top:3px;font-weight:500}
+.stat-hots{color:#856404}.stat-tas{color:#9b1c1c}.stat-ovch{color:#1e3a8a}
+.period-tabs{display:flex;gap:8px;margin-bottom:16px}
+.period-tab{padding:7px 16px;font-size:13px;cursor:pointer;border-radius:20px;border:1px solid #d0d0d0;background:#fff;color:#555;font-family:inherit;font-weight:500;transition:all 0.15s}
+.period-tab.active{background:#1a4fa8;color:#fff;border-color:#1a4fa8}
+.empty{font-size:14px;color:#999;padding:24px 0;text-align:center}
+.hint-text{font-size:12px;color:#1a4fa8;margin-left:6px}
+.import-zone{border:2px dashed #c7d9f8;border-radius:10px;padding:30px;text-align:center;background:#f8fbff;cursor:pointer;transition:all 0.15s}
+.import-zone:hover{border-color:#1a4fa8;background:#f0f5ff}
+.import-zone p{font-size:14px;color:#666;margin-top:8px}
+.import-zone small{font-size:12px;color:#999;margin-top:4px;display:block}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-row select{padding:7px 10px;border:1px solid #d0d0d0;border-radius:7px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+.angi-badge{font-size:12px;background:#f0f0f0;color:#555;padding:2px 8px;border-radius:12px;font-weight:500}
+.record-block{background:#f8f9fb;border-radius:8px;padding:14px;margin-top:12px}
+.record-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+.record-row:last-child{border-bottom:none}
+.bulk-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff8f0;border:1px solid #fcd9a0;border-radius:8px;margin-bottom:12px}
+.bulk-bar span{font-size:13px;color:#7a4500;flex:1}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#1a4fa8}
+.danger-zone{margin-top:16px;padding:14px;border:1px solid #fca5a5;border-radius:8px;background:#fff8f8;display:flex;align-items:center;justify-content:space-between}
+.danger-zone p{font-size:13px;color:#7a1c1c}
+.danger-zone small{font-size:12px;color:#999;display:block;margin-top:2px}
+.pm-tab{flex:1;padding:10px 4px;font-size:13px;cursor:pointer;border:none;background:none;color:#666;font-family:inherit;border-bottom:2px solid transparent;transition:all 0.15s}
+.pm-tab.active{color:#1a4fa8;border-bottom:2px solid #1a4fa8;font-weight:600;background:#f8fbff}
+.pm-tab:hover:not(.active){background:#f9f9f9}
+.pm-section{display:block}
+.zorc-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;background:#fff0f0;color:#9b1c1c;border:1px solid #fca5a5}
+.keis-badge-open{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.keis-badge-closed{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.pm-add-form{background:#f8f9fb;border-radius:8px;padding:14px;margin-top:12px;border:1px solid #eee}
+.pm-add-form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.clickable-name{cursor:pointer;color:#1a4fa8;text-decoration:underline;text-underline-offset:2px}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f2f5}
+.login-box{background:#fff;border-radius:12px;padding:36px 32px;width:320px;border:1px solid #e0e0e0;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.login-box h2{font-size:20px;font-weight:700;color:#1a4fa8;margin-bottom:4px}
+.login-box p{font-size:13px;color:#888;margin-bottom:24px}
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:999;display:flex;align-items:center;justify-content:center;font-size:14px;color:#555}
+</style>
+</head>
+<body>
+
+<!-- НЭВТРЭХ ХУУДАС -->
+<div class="login-wrap" id="login-page">
+  <div class="login-box">
+    <h2>🏫 28-р сургууль</h2>
+    <p>Ирцийн бүртгэлийн систем</p>
+    <div id="msg-login"></div>
+    <div class="field">
+      <label>Нэвтрэх нэр</label>
+      <input type="text" id="l-user" placeholder="username" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div class="field">
+      <label>Нууц үг</label>
+      <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="login()">Нэвтрэх</button>
+  </div>
+</div>
+
+<!-- ҮНДСЭН ХУУДАС -->
+<div id="main-page" style="display:none">
+<div class="header">
+  <div class="header-left">
+    <h1>📋 Ирцийн бүртгэл</h1>
+    <p>28-р дунд сургууль</p>
+  </div>
+  <div class="header-right">
+    <span class="user-badge" id="user-badge"></span>
+    <div id="header-stats" style="font-size:12px;opacity:0.85;text-align:right"></div>
+    <button class="btn btn-outline btn-sm" onclick="logout()" style="color:#fff;border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.1)">Гарах</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabs" id="main-tabs">
+    <button class="tab active" onclick="switchTab('burgel')" id="tab-burgel">✏️ Бүртгэл</button>
+    <button class="tab" onclick="switchTab('hailt')" id="tab-hailt">🔍 Хайлт</button>
+    <button class="tab" onclick="switchTab('stat')" id="tab-stat">📊 Статистик</button>
+    <button class="tab" onclick="switchTab('import')" id="tab-import">📥 Импорт</button>
+    <button class="tab" onclick="switchTab('export')" id="tab-export">📤 Экспорт</button>
+  </div>
+
+  <!-- БҮРТГЭЛ -->
+  <div id="sec-burgel" class="section active">
+    <div class="card">
+      <div class="card-title">Ирцийн бүртгэл нэмэх</div>
+      <div id="msg-burgel"></div>
+      <div class="row">
+        <div class="field">
+          <label>Сурагчийн код</label>
+          <input type="text" id="b-kod" placeholder="жнь: 28050101" oninput="kodLookup()">
+        </div>
+        <div class="field">
+          <label>Овог нэр <span id="b-hint" class="hint-text"></span></label>
+          <input type="text" id="b-ner" placeholder="Кодоо оруулбал автоматаар гарна" readonly style="background:#f8f9fb">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Анги</label>
+          <input type="text" id="b-angi" readonly style="background:#f8f9fb">
+        </div>
+        <div class="field">
+          <label>Огноо</label>
+          <input type="date" id="b-ognoo">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Шалтгаан</label>
+          <select id="b-shaltgaan">
+            <option value="хоцорсон">Хоцорсон</option>
+            <option value="тасалсан">Тасалсан</option>
+            <option value="өвчтэй">Өвчтэй</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Тэмдэглэл <span style="font-weight:400;font-size:11px">(заавал биш)</span></label>
+          <input type="text" id="b-temd" placeholder="Нэмэлт мэдээлэл...">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="nemehBurtgel()">✓ Бүртгэх</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Өнөөдрийн бүртгэл</div>
+      <div id="today-list"></div>
+    </div>
+  </div>
+
+  <!-- ХАЙЛТ -->
+  <div id="sec-hailt" class="section">
+    <div class="search-bar">
+      <input type="text" id="h-q" placeholder="Код эсвэл нэрээр хайх..." oninput="hailt()">
+      <select id="h-angi" onchange="hailt()"><option value="">Бүх анги</option></select>
+      <select id="h-shaltgaan" onchange="hailt()">
+        <option value="">Бүх шалтгаан</option>
+        <option value="хоцорсон">Хоцорсон</option>
+        <option value="тасалсан">Тасалсан</option>
+        <option value="өвчтэй">Өвчтэй</option>
+      </select>
+    </div>
+    <div id="hailt-result"></div>
+  </div>
+
+  <!-- СТАТИСТИК -->
+  <div id="sec-stat" class="section">
+    <div class="period-tabs">
+      <button class="period-tab active" onclick="setPeriod('week',this)">7 хоног</button>
+      <button class="period-tab" onclick="setPeriod('month',this)">Энэ сар</button>
+      <button class="period-tab" onclick="setPeriod('all',this)">Нийт</button>
+    </div>
+    <div id="stat-content"></div>
+  </div>
+
+  <!-- ИМПОРТ (admin only) -->
+  <div id="sec-import" class="section">
+    <div class="card">
+      <div class="card-title">Excel файлаас сурагч оруулах</div>
+      <div id="msg-import"></div>
+      <div class="import-zone" onclick="document.getElementById('file-input').click()">
+        <div style="font-size:32px">📂</div>
+        <p>Excel файл сонгох (.xlsx)</p>
+        <small>Medle системийн Excel — Регистр, Нэр, Бүлэг, Утас, Хаяг автоматаар уншигдана</small>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
+      <div style="margin-top:16px">
+        <p style="font-size:13px;color:#666;margin-bottom:10px">Эсвэл гараар нэмэх:</p>
+        <div class="row3">
+          <div class="field"><label>Код</label><input type="text" id="m-kod" placeholder="28050101"></div>
+          <div class="field"><label>Овог нэр</label><input type="text" id="m-ner" placeholder="Б.Түмэлүн"></div>
+          <div class="field"><label>Анги (бүлэг)</label><input type="text" id="m-angi" placeholder="5-а"></div>
+        </div>
+        <button class="btn btn-outline" onclick="nemehGaraar()">+ Нэмэх</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Бүртгэлтэй сурагчид <span id="sur-count" style="color:#1a4fa8;font-size:13px"></span></div>
+      <div class="filter-row">
+        <select id="f-angi-list" onchange="renderSuragchid()"><option value="">Бүх анги</option></select>
+        <input type="text" style="flex:1;padding:7px 10px;border:1px solid #d0d0d0;border-radius:7px;font-size:13px;outline:none" placeholder="Нэр/код хайх..." id="f-sur-search" oninput="renderSuragchid()">
+        <button class="btn btn-outline btn-sm" onclick="toggleSelectAll()">☑ Бүгдийг сонгох</button>
+      </div>
+      <div id="bulk-bar" style="display:none" class="bulk-bar">
+        <span id="bulk-count">0 сурагч сонгогдсон</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteSelected()">🗑 Сонгосныг устгах</button>
+        <button class="btn btn-outline btn-sm" onclick="clearSelection()">Болих</button>
+      </div>
+      <div id="suragch-table"></div>
+      <div class="danger-zone">
+        <div><p><b>Бүх сурагч устгах</b></p><small>Бүх бүртгэл мөн устана.</small></div>
+        <button class="btn btn-danger btn-sm" onclick="deleteAllSuragchid()">🗑 Бүгдийг устгах</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Нууц үг солих</div>
+      <div id="msg-pw"></div>
+      <div class="row">
+        <div class="field"><label>Хэрэглэгч</label>
+          <select id="pw-user"><option value="admin">admin</option><option value="teacher">teacher</option></select>
+        </div>
+        <div class="field"><label>Шинэ нууц үг</label>
+          <input type="password" id="pw-new" placeholder="Шинэ нууц үг">
+        </div>
+      </div>
+      <button class="btn btn-outline" onclick="changePassword()">🔒 Солих</button>
+    </div>
+  </div>
+
+  <!-- ЭКСПОРТ -->
+  <div id="sec-export" class="section">
+    <div class="card">
+      <div class="card-title">Excel экспорт</div>
+      <div id="msg-export"></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+          <div><p style="font-weight:600;font-size:14px">Бүх ирцийн бүртгэл</p><p style="font-size:12px;color:#888;margin-top:3px">Огноо, сурагч, анги, шалтгаан</p></div>
+          <button class="btn btn-success" onclick="exportAll()">📥 Татах</button>
+        </div>
+        <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+          <div><p style="font-weight:600;font-size:14px">Сурагчдын жагсаалт</p><p style="font-size:12px;color:#888;margin-top:3px">Код, нэр, анги, нийт тоо</p></div>
+          <button class="btn btn-success" onclick="exportSuragchid()">📥 Татах</button>
+        </div>
+        <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px">
+          <p style="font-weight:600;font-size:14px;margin-bottom:10px">Сонгосон сарын бүртгэл</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="month" id="exp-month" style="padding:8px 12px;border:1px solid #d0d0d0;border-radius:7px;font-size:13px;font-family:inherit;outline:none">
+            <button class="btn btn-success" onclick="exportMonth()">📥 Татах</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center" id="profile-overlay" onclick="closeProfileOut(event)">
+  <div style="background:#fff;border-radius:12px;max-width:620px;width:90%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column">
+    <div style="background:#1a4fa8;padding:18px 20px;color:#fff;display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div id="pm-ner" style="font-size:17px;font-weight:700"></div>
+        <div id="pm-sub" style="font-size:12px;opacity:0.8;margin-top:3px"></div>
+      </div>
+      <button onclick="closeProfile()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;opacity:0.8">×</button>
+    </div>
+    <div style="display:flex;border-bottom:1px solid #eee">
+      <button class="pm-tab active" onclick="pmTab('irc',this)">Ирц</button>
+      <button class="pm-tab" onclick="pmTab('zorc',this)">Зөрчил</button>
+      <button class="pm-tab" onclick="pmTab('keis',this)">Кейс</button>
+      <button class="pm-tab" id="pm-tab-edit" onclick="pmTab('edit',this)">Мэдээлэл</button>
+    </div>
+    <div style="padding:18px;overflow-y:auto;flex:1">
+      <div id="pm-irc" class="pm-section"></div>
+      <div id="pm-zorc" class="pm-section" style="display:none"></div>
+      <div id="pm-keis" class="pm-section" style="display:none"></div>
+      <div id="pm-edit" class="pm-section" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading" style="display:none">⏳ Уншиж байна...</div>
+
+<script>
+// ===== SUPABASE =====
+const SB_URL='https://kkbjzwbhmwvdlnddkslh.supabase.co'
+const SB_KEY='sb_publishable_egSLDvmm9r9hiTh58vQwtQ_fMwOSm-G'
+const sb=supabase.createClient(SB_URL,SB_KEY)
+
+// ===== ТӨЛӨВ =====
+let curUser=null // {username, role}
+let surCache={} // kod->суурь мэдээлэл (санах ой)
+let curProfileKod=null
+const today=new Date().toISOString().split('T')[0]
+
+// ===== LOADING =====
+function showLoad(){document.getElementById('loading').style.display='flex'}
+function hideLoad(){document.getElementById('loading').style.display='none'}
+
+// ===== НЭВТРЭХ =====
+async function login(){
+  const user=document.getElementById('l-user').value.trim()
+  const pass=document.getElementById('l-pass').value.trim()
+  if(!user||!pass){showLoginMsg('Нэвтрэх нэр, нууц үгээ оруулна уу.','err');return}
+  showLoad()
+  const {data,error}=await sb.from('users').select('*').eq('username',user).eq('password_hash',pass).single()
+  hideLoad()
+  if(error||!data){showLoginMsg('Нэвтрэх нэр эсвэл нууц үг буруу байна.','err');return}
+  curUser={username:data.username,role:data.role}
+  document.getElementById('login-page').style.display='none'
+  document.getElementById('main-page').style.display='block'
+  document.getElementById('user-badge').textContent=(data.role==='admin'?'👤 Админ':'🧑‍🏫 Жижүүр багш')+': '+data.username
+  applyRoleUI()
+  await loadSurCache()
+  initPage()
+}
+
+function showLoginMsg(txt,type){
+  document.getElementById('msg-login').innerHTML='<div class="msg msg-'+type+'">'+txt+'</div>'
+}
+
+function logout(){
+  curUser=null
+  surCache={}
+  document.getElementById('main-page').style.display='none'
+  document.getElementById('login-page').style.display='flex'
+  document.getElementById('l-pass').value=''
+}
+
+function applyRoleUI(){
+  const isAdmin=curUser.role==='admin'
+  document.getElementById('tab-import').style.display=isAdmin?'':'none'
+  document.getElementById('tab-export').style.display=isAdmin?'':'none'
+  if(!isAdmin){
+    // Жижүүр багш: хайлт, статистик зөвхөн харах
+    document.getElementById('tab-hailt').disabled=false
+    document.getElementById('tab-stat').disabled=false
+  }
+}
+
+// ===== САНАХ ОЙ (cache) =====
+async function loadSurCache(){
+  const {data}=await sb.from('suragchid').select('kod,ner,angi,huvis')
+  if(data) data.forEach(s=>surCache[s.kod]=s)
+}
+
+// ===== TAB =====
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'))
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'))
+  const tabEl=document.getElementById('tab-'+t)
+  if(tabEl)tabEl.classList.add('active')
+  const sec=document.getElementById('sec-'+t)
+  if(sec)sec.classList.add('active')
+  if(t==='burgel')renderToday()
+  if(t==='hailt'){updateAngiFilter2();hailt()}
+  if(t==='stat')renderStat('week')
+  if(t==='import'){renderSuragchid();updateAngiFilter()}
+  if(t==='export'){
+    const nm=new Date()
+    document.getElementById('exp-month').value=nm.getFullYear()+'-'+String(nm.getMonth()+1).padStart(2,'0')
+  }
+  updateHeaderStats()
+}
+
+function initPage(){
+  document.getElementById('b-ognoo').value=today
+  switchTab('burgel')
+}
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id)
+  if(!el)return
+  el.innerHTML='<div class="msg msg-'+type+'">'+text+'</div>'
+  setTimeout(()=>{if(el)el.innerHTML=''},3500)
+}
+
+async function updateHeaderStats(){
+  const {count:sc}=await sb.from('suragchid').select('*',{count:'exact',head:true})
+  const {count:bc}=await sb.from('burtgel').select('*',{count:'exact',head:true})
+  document.getElementById('header-stats').innerHTML=(sc||0)+' сурагч<br>'+(bc||0)+' бүртгэл'
+}
+
+function badge(sh){
+  const m={хоцорсон:'badge-hots',тасалсан:'badge-tas','өвчтэй':'badge-ovch'}
+  return '<span class="badge '+(m[sh]||'badge-hots')+'">'+sh+'</span>'
+}
+
+function getAngiList(){
+  const set=new Set()
+  Object.values(surCache).forEach(s=>s.angi&&set.add(s.angi))
+  return [...set].sort((a,b)=>{
+    const [an,al]=a.split('-');const [bn,bl]=b.split('-')
+    return parseInt(an)-parseInt(bn)||al.localeCompare(bl,'mn')
+  })
+}
+
+function updateAngiFilter(){
+  const angis=getAngiList()
+  const sel=document.getElementById('f-angi-list')
+  if(!sel)return
+  const cur=sel.value
+  sel.innerHTML='<option value="">Бүх анги</option>'+angis.map(a=>'<option value="'+a+'"'+(a===cur?' selected':'')+'>'+a+'</option>').join('')
+}
+
+function updateAngiFilter2(){
+  const angis=getAngiList()
+  const sel=document.getElementById('h-angi')
+  if(!sel)return
+  const cur=sel.value
+  sel.innerHTML='<option value="">Бүх анги</option>'+angis.map(a=>'<option value="'+a+'"'+(a===cur?' selected':'')+'>'+a+'</option>').join('')
+}
+
+// ===== КОД ҮҮСГЭХ =====
+const BUL_DARAALL={'а':1,'б':2,'в':3,'г':4,'д':5,'е':6,'ё':7,'ж':8,'з':9,'и':10,'й':11,'к':12,'л':13,'м':14,'н':15,'о':16,'ө':17,'п':18,'р':19,'с':20,'т':21,'у':22,'ү':23,'х':24,'ц':25,'ч':26,'ш':27,'э':28,'ю':29,'я':30}
+function pad2(n){return String(n).padStart(2,'0')}
+function genKod(bulug,daraall){
+  const parts=bulug.split('-')
+  if(parts.length<2)return null
+  const angiNum=parseInt(parts[0])
+  const ulgee=parts[1].toLowerCase()
+  const bulNum=BUL_DARAALL[ulgee]||99
+  return '28'+pad2(angiNum)+pad2(bulNum)+pad2(daraall)
+}
+
+// ===== ИМПОРТ =====
+async function importExcel(e){
+  if(curUser.role!=='admin'){showMsg('msg-import','Зөвхөн админ импорт хийж болно.','err');return}
+  const file=e.target.files[0]
+  if(!file)return
+  const reader=new FileReader()
+  reader.onload=async function(ev){
+    try{
+      showLoad()
+      const wb=XLSX.read(ev.target.result,{type:'array'})
+      const ws=wb.Sheets[wb.SheetNames[0]]
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})
+      if(rows.length<2){hideLoad();showMsg('msg-import','Файлд өгөгдөл байхгүй.','err');return}
+
+      const header=rows[0].map(h=>String(h||'').trim())
+      const ci={}
+      header.forEach((h,i)=>{
+        if(h==='Регистр')ci.register=i
+        if(h==='Хүйс')ci.huvis=i
+        if(h==='Бүлэг')ci.bul=i
+        if(h==='Оршин суугаа хаяг')ci.hayag=i
+        if(h==='Суралцагчийн утас')ci.utas=i
+        if(h==='Асран хамгаалагч')ci.asran=i
+      })
+
+      const hasHeader=ci.register!==undefined
+      const surList=[]
+      rows.forEach((row,i)=>{
+        if(i===0&&hasHeader)return
+        const ner=String(row[8]||'').trim()
+        const nerFull=String(row[7]||'').trim()
+        const bulug=String(row[ci.bul]||'').trim()
+        if(!ner||!bulug)return
+        surList.push({ner,nerFull,bulug,
+          huvis:String(row[ci.huvis]||'').trim(),
+          hayag:String(row[ci.hayag]||'').trim(),
+          utas:String(row[ci.utas]||'').trim(),
+          asran:String(row[ci.asran]||'').trim()
+        })
+      })
+
+      const bulMap={}
+      surList.forEach(s=>{
+        if(!bulMap[s.bulug])bulMap[s.bulug]=[]
+        bulMap[s.bulug].push(s)
+      })
+      Object.keys(bulMap).forEach(bul=>{
+        bulMap[bul].sort((a,b)=>a.ner.localeCompare(b.ner,'mn'))
+      })
+
+      const toInsert=[]
+      Object.keys(bulMap).forEach(bul=>{
+        bulMap[bul].forEach((s,idx)=>{
+          const kod=genKod(bul,idx+1)
+          if(!kod)return
+          toInsert.push({kod,ner:s.nerFull,angi:bul,huvis:s.huvis,hayag:s.hayag,utas:s.utas,eh_ner:s.asran})
+        })
+      })
+
+      // 100-аар хуваан оруулах
+      let added=0,skip=0
+      for(let i=0;i<toInsert.length;i+=100){
+        const chunk=toInsert.slice(i,i+100)
+        const {data,error}=await sb.from('suragchid').upsert(chunk,{onConflict:'kod',ignoreDuplicates:true})
+        if(!error)added+=chunk.length
+        else skip+=chunk.length
+      }
+
+      await loadSurCache()
+      updateAngiFilter()
+      renderSuragchid()
+      hideLoad()
+      showMsg('msg-import',added+' сурагч нэмэгдлээ.','ok')
+      updateHeaderStats()
+    }catch(err){hideLoad();showMsg('msg-import','Алдаа: '+err.message,'err')}
+  }
+  reader.readAsArrayBuffer(file)
+  e.target.value=''
+}
+
+async function nemehGaraar(){
+  if(curUser.role!=='admin')return
+  const kod=document.getElementById('m-kod').value.trim()
+  const ner=document.getElementById('m-ner').value.trim()
+  const angi=document.getElementById('m-angi').value.trim()
+  if(!kod||!ner){showMsg('msg-import','Код болон нэр оруулна уу.','err');return}
+  showLoad()
+  const {error}=await sb.from('suragchid').insert({kod,ner,angi})
+  hideLoad()
+  if(error){showMsg('msg-import','Алдаа: '+(error.message.includes('duplicate')?'Код давхцсан байна.':error.message),'err');return}
+  surCache[kod]={kod,ner,angi}
+  document.getElementById('m-kod').value=''
+  document.getElementById('m-ner').value=''
+  document.getElementById('m-angi').value=''
+  showMsg('msg-import',ner+' нэмэгдлээ.','ok')
+  renderSuragchid()
+  updateAngiFilter()
+  updateHeaderStats()
+}
+
+let selectedKods=new Set()
+
+async function renderSuragchid(){
+  const q=(document.getElementById('f-sur-search')||{value:''}).value.toLowerCase()
+  const angi=(document.getElementById('f-angi-list')||{value:''}).value
+  let keys=Object.keys(surCache)
+  if(q)keys=keys.filter(k=>k.includes(q)||surCache[k].ner.toLowerCase().includes(q))
+  if(angi)keys=keys.filter(k=>surCache[k].angi===angi)
+  document.getElementById('sur-count').textContent='('+keys.length+' сурагч)'
+  const el=document.getElementById('suragch-table')
+  if(!keys.length){el.innerHTML='<p class="empty">Сурагч байхгүй.</p>';updateBulkBar();return}
+
+  // Бүртгэлийн тоог авах
+  const {data:bc}=await sb.from('burtgel').select('kod')
+  const bCount={}
+  if(bc)bc.forEach(b=>{bCount[b.kod]=(bCount[b.kod]||0)+1})
+
+  el.innerHTML='<table><thead><tr><th style="width:36px"><input type="checkbox" id="chk-all" onclick="toggleAllVisible(this)"></th><th>Код</th><th>Овог нэр</th><th>Анги</th><th>Бүртгэл</th><th></th></tr></thead><tbody>'+
+    keys.map(k=>{
+      const s=surCache[k]
+      const chk=selectedKods.has(k)?'checked':''
+      return '<tr><td><input type="checkbox" class="row-chk" data-kod="'+k+'" '+chk+' onchange="onRowCheck(this)"></td><td><span class="code-pill">'+k+'</span></td><td><span class="clickable-name" onclick="openProfile(\''+k+'\')">'+s.ner+'</span></td><td><span class="angi-badge">'+(s.angi||'—')+'</span></td><td>'+(bCount[k]||0)+'</td><td><button class="btn-danger-sm" onclick="deleteSuragch(\''+k+'\')" title="Устгах">×</button></td></tr>'
+    }).join('')+'</tbody></table>'
+  updateBulkBar()
+}
+
+function onRowCheck(el){
+  if(el.checked)selectedKods.add(el.dataset.kod)
+  else selectedKods.delete(el.dataset.kod)
+  updateBulkBar()
+}
+function toggleAllVisible(masterChk){
+  document.querySelectorAll('.row-chk').forEach(c=>{c.checked=masterChk.checked;if(masterChk.checked)selectedKods.add(c.dataset.kod);else selectedKods.delete(c.dataset.kod)})
+  updateBulkBar()
+}
+function toggleSelectAll(){const c=document.getElementById('chk-all');if(c){c.checked=!c.checked;toggleAllVisible(c)}}
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar')
+  document.getElementById('bulk-count').textContent=selectedKods.size+' сурагч сонгогдсон'
+  bar.style.display=selectedKods.size>0?'flex':'none'
+}
+function clearSelection(){selectedKods.clear();document.querySelectorAll('.row-chk').forEach(c=>c.checked=false);const c=document.getElementById('chk-all');if(c)c.checked=false;updateBulkBar()}
+
+async function deleteSelected(){
+  if(!selectedKods.size)return
+  if(!confirm(selectedKods.size+' сурагчийг устгах уу?'))return
+  showLoad()
+  for(const k of selectedKods){
+    await sb.from('suragchid').delete().eq('kod',k)
+    delete surCache[k]
+  }
+  selectedKods.clear()
+  hideLoad()
+  renderSuragchid()
+  updateAngiFilter()
+  updateHeaderStats()
+  showMsg('msg-import','Устгагдлаа.','ok')
+}
+
+async function deleteAllSuragchid(){
+  const cnt=Object.keys(surCache).length
+  if(!cnt){showMsg('msg-import','Устгах сурагч байхгүй.','info');return}
+  if(!confirm('Нийт '+cnt+' сурагч болон бүх бүртгэлийг устгах уу?\n\nБуцаах боломжгүй.'))return
+  showLoad()
+  await sb.from('burtgel').delete().neq('id',0)
+  await sb.from('suragchid').delete().neq('kod','__none__')
+  surCache={}
+  selectedKods.clear()
+  hideLoad()
+  renderSuragchid()
+  updateAngiFilter()
+  updateHeaderStats()
+  showMsg('msg-import','Бүх өгөгдөл устгагдлаа.','ok')
+}
+
+async function deleteSuragch(kod){
+  if(!confirm(kod+' сурагчийг устгах уу?'))return
+  showLoad()
+  await sb.from('suragchid').delete().eq('kod',kod)
+  delete surCache[kod]
+  hideLoad()
+  renderSuragchid()
+  updateAngiFilter()
+  updateHeaderStats()
+}
+
+// ===== БҮРТГЭЛ =====
+async function kodLookup(){
+  const kod=document.getElementById('b-kod').value.trim()
+  let s=surCache[kod]
+  if(!s&&kod.length>=6){
+    const {data}=await sb.from('suragchid').select('kod,ner,angi').eq('kod',kod).single()
+    if(data){surCache[kod]=data;s=data}
+  }
+  if(s){
+    document.getElementById('b-ner').value=s.ner
+    document.getElementById('b-angi').value=s.angi||''
+    document.getElementById('b-hint').textContent='✓'
+  } else {
+    document.getElementById('b-ner').value=''
+    document.getElementById('b-angi').value=''
+    document.getElementById('b-hint').textContent=''
+  }
+}
+
+async function nemehBurtgel(){
+  const kod=document.getElementById('b-kod').value.trim()
+  const ognoo=document.getElementById('b-ognoo').value
+  const shaltgaan=document.getElementById('b-shaltgaan').value
+  const temd=document.getElementById('b-temd').value.trim()
+  if(!kod||!surCache[kod]){showMsg('msg-burgel','Зөв код оруулна уу.','err');return}
+  if(!ognoo){showMsg('msg-burgel','Огноо оруулна уу.','err');return}
+  showLoad()
+  const {error}=await sb.from('burtgel').insert({kod,ognoo,shaltgaan,temd})
+  hideLoad()
+  if(error){showMsg('msg-burgel','Алдаа: '+error.message,'err');return}
+  showMsg('msg-burgel',surCache[kod].ner+' ('+kod+') — амжилттай бүртгэгдлээ.','ok')
+  document.getElementById('b-temd').value=''
+  renderToday()
+  updateHeaderStats()
+}
+
+async function renderToday(){
+  showLoad()
+  const {data}=await sb.from('burtgel').select('*').eq('ognoo',today).order('id',{ascending:false})
+  hideLoad()
+  const el=document.getElementById('today-list')
+  if(!data||!data.length){el.innerHTML='<p class="empty">Өнөөдөр бүртгэл байхгүй.</p>';return}
+  el.innerHTML='<table><thead><tr><th>Код</th><th>Нэр</th><th>Анги</th><th>Шалтгаан</th><th>Тэмдэглэл</th><th></th></tr></thead><tbody>'+
+    data.map(b=>{
+      const s=surCache[b.kod]||{ner:'?',angi:''}
+      const canDel=curUser.role==='admin'
+      return '<tr><td><span class="code-pill">'+b.kod+'</span></td><td>'+s.ner+'</td><td>'+(s.angi||'—')+'</td><td>'+badge(b.shaltgaan)+'</td><td style="color:#777;font-size:12px">'+(b.temd||'—')+'</td><td>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgel('+b.id+',\'today\')">×</button>':'')+'</td></tr>'
+    }).join('')+'</tbody></table>'
+}
+
+async function deleteBurtgel(id,src){
+  if(curUser.role!=='admin'){showMsg('msg-burgel','Зөвхөн админ устгах боломжтой.','err');return}
+  showLoad()
+  await sb.from('burtgel').delete().eq('id',id)
+  hideLoad()
+  if(src==='today')renderToday()
+  else hailt()
+  updateHeaderStats()
+}
+
+// ===== ХАЙЛТ =====
+async function hailt(){
+  const q=document.getElementById('h-q').value.toLowerCase()
+  const angi=document.getElementById('h-angi').value
+  const sh=document.getElementById('h-shaltgaan').value
+  const el=document.getElementById('hailt-result')
+  if(!q&&!angi&&!sh){el.innerHTML='<p class="empty">Хайлтын нөхцөл оруулна уу.</p>';return}
+  let keys=Object.keys(surCache)
+  if(q)keys=keys.filter(k=>k.includes(q)||surCache[k].ner.toLowerCase().includes(q))
+  if(angi)keys=keys.filter(k=>surCache[k].angi===angi)
+  if(!keys.length){el.innerHTML='<p class="empty">Илэрц олдсонгүй.</p>';return}
+  showLoad()
+  const {data:recs}=await sb.from('burtgel').select('*').in('kod',keys).order('ognoo',{ascending:false})
+  hideLoad()
+  const recMap={}
+  if(recs)recs.forEach(r=>{if(!recMap[r.kod])recMap[r.kod]=[];recMap[r.kod].push(r)})
+  el.innerHTML=keys.map(k=>{
+    const s=surCache[k]
+    const allRecs=(recMap[k]||[]).filter(r=>!sh||r.shaltgaan===sh)
+    const tots={хоцорсон:0,тасалсан:0,'өвчтэй':0}
+    allRecs.forEach(r=>tots[r.shaltgaan]=(tots[r.shaltgaan]||0)+1)
+    const canDel=curUser.role==='admin'
+    return '<div class="card" style="margin-bottom:12px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+        '<span class="code-pill">'+k+'</span>'+
+        '<span class="clickable-name" onclick="openProfile(\''+k+'\')" style="font-weight:600;font-size:15px">'+s.ner+'</span>'+
+        (s.angi?'<span class="angi-badge">'+s.angi+'</span>':'')+
+      '</div>'+
+      '<div class="stat-grid">'+
+        '<div class="stat-card"><div class="stat-num stat-hots">'+tots.хоцорсон+'</div><div class="stat-lbl">Хоцорсон</div></div>'+
+        '<div class="stat-card"><div class="stat-num stat-tas">'+tots.тасалсан+'</div><div class="stat-lbl">Тасалсан</div></div>'+
+        '<div class="stat-card"><div class="stat-num stat-ovch">'+tots['өвчтэй']+'</div><div class="stat-lbl">Өвчтэй</div></div>'+
+      '</div>'+
+      (allRecs.length?'<div class="record-block">'+allRecs.map(r=>'<div class="record-row"><div>'+
+        '<span style="font-size:12px;color:#888;margin-right:8px">'+r.ognoo+'</span>'+badge(r.shaltgaan)+
+        (r.temd?'<span style="font-size:12px;color:#666;margin-left:8px">'+r.temd+'</span>':'')+
+      '</div>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgel('+r.id+',\'hailt\')">×</button>':'')+
+      '</div>').join('')+'</div>':'<p style="font-size:13px;color:#999;padding:8px 0">Бүртгэл байхгүй.</p>')+
+    '</div>'
+  }).join('')
+}
+
+// ===== СТАТИСТИК =====
+let curPeriod='week'
+function setPeriod(p,el){
+  curPeriod=p
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  renderStat(p)
+}
+
+async function renderStat(period){
+  showLoad()
+  let query=sb.from('burtgel').select('*')
+  const now=new Date()
+  if(period==='week'){const from=new Date(now);from.setDate(from.getDate()-6);query=query.gte('ognoo',from.toISOString().split('T')[0])}
+  else if(period==='month'){query=query.gte('ognoo',new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0])}
+  const {data:filtered}=await query
+  hideLoad()
+  if(!filtered){document.getElementById('stat-content').innerHTML='<p class="empty">Өгөгдөл байхгүй.</p>';return}
+  const tots={хоцорсон:0,тасалсан:0,'өвчтэй':0}
+  filtered.forEach(b=>tots[b.shaltgaan]=(tots[b.shaltgaan]||0)+1)
+  const total=filtered.length
+  const angiMap={}
+  filtered.forEach(b=>{
+    const a=(surCache[b.kod]||{}).angi||'Тодорхойгүй'
+    if(!angiMap[a])angiMap[a]={хоцорсон:0,тасалсан:0,'өвчтэй':0,нийт:0}
+    angiMap[a][b.shaltgaan]=(angiMap[a][b.shaltgaan]||0)+1
+    angiMap[a].нийт++
+  })
+  const uniqSur=new Set(filtered.map(b=>b.kod)).size
+  const label=period==='week'?'Сүүлийн 7 хоног':period==='month'?'Энэ сар':'Нийт'
+  document.getElementById('stat-content').innerHTML=
+    '<div class="card"><div class="card-title">'+label+'</div>'+
+      '<div class="stat-grid">'+
+        '<div class="stat-card"><div class="stat-num" style="color:#1a4fa8">'+total+'</div><div class="stat-lbl">Нийт бүртгэл</div></div>'+
+        '<div class="stat-card"><div class="stat-num" style="color:#555">'+uniqSur+'</div><div class="stat-lbl">Хамрагдсан сурагч</div></div>'+
+        '<div class="stat-card"><div class="stat-num stat-tas">'+tots.тасалсан+'</div><div class="stat-lbl">Тасалсан</div></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+
+        '<div class="stat-card"><div class="stat-num stat-hots">'+tots.хоцорсон+'</div><div class="stat-lbl">Хоцорсон</div></div>'+
+        '<div class="stat-card"><div class="stat-num stat-ovch">'+tots['өвчтэй']+'</div><div class="stat-lbl">Өвчтэй</div></div>'+
+        '<div class="stat-card"><div class="stat-num" style="color:#888">'+Object.keys(angiMap).length+'</div><div class="stat-lbl">Анги</div></div>'+
+      '</div></div>'+
+    (Object.keys(angiMap).length?
+    '<div class="card"><div class="card-title">Анги тус бүрийн дүн</div>'+
+    '<table><thead><tr><th>Анги</th><th>Нийт</th><th>Хоцорсон</th><th>Тасалсан</th><th>Өвчтэй</th></tr></thead><tbody>'+
+    Object.keys(angiMap).sort().map(a=>'<tr><td><span class="angi-badge">'+a+'</span></td><td><b>'+angiMap[a].нийт+'</b></td><td>'+badge('хоцорсон')+' '+angiMap[a].хоцорсон+'</td><td>'+badge('тасалсан')+' '+angiMap[a].тасалсан+'</td><td>'+badge('өвчтэй')+' '+angiMap[a]['өвчтэй']+'</td></tr>').join('')+
+    '</tbody></table></div>':'')
+}
+
+// ===== ЭКСПОРТ =====
+async function exportAll(){
+  showLoad()
+  const {data:b}=await sb.from('burtgel').select('*').order('ognoo',{ascending:false})
+  hideLoad()
+  if(!b||!b.length){showMsg('msg-export','Бүртгэл байхгүй байна.','info');return}
+  const rows=[['Огноо','Код','Овог нэр','Анги','Шалтгаан','Тэмдэглэл']]
+  b.forEach(r=>{const s=surCache[r.kod]||{ner:'?',angi:''};rows.push([r.ognoo,r.kod,s.ner,s.angi||'',r.shaltgaan,r.temd||''])})
+  downloadXlsx(rows,'Ирцийн_бүртгэл')
+  showMsg('msg-export','Татаж авлаа.','ok')
+}
+
+async function exportSuragchid(){
+  showLoad()
+  const {data:b}=await sb.from('burtgel').select('kod,shaltgaan')
+  hideLoad()
+  const rows=[['Код','Овог нэр','Анги','Хоцорсон','Тасалсан','Өвчтэй','Нийт']]
+  Object.keys(surCache).sort().forEach(k=>{
+    const s=surCache[k]
+    const rb=(b||[]).filter(r=>r.kod===k)
+    const h=rb.filter(r=>r.shaltgaan==='хоцорсон').length
+    const t=rb.filter(r=>r.shaltgaan==='тасалсан').length
+    const o=rb.filter(r=>r.shaltgaan==='өвчтэй').length
+    rows.push([k,s.ner,s.angi||'',h,t,o,h+t+o])
+  })
+  downloadXlsx(rows,'Сурагчдын_жагсаалт')
+  showMsg('msg-export','Татаж авлаа.','ok')
+}
+
+async function exportMonth(){
+  const val=document.getElementById('exp-month').value
+  if(!val){showMsg('msg-export','Сар сонгоно уу.','err');return}
+  showLoad()
+  const {data:b}=await sb.from('burtgel').select('*').gte('ognoo',val+'-01').lt('ognoo',val+'-32').order('ognoo')
+  hideLoad()
+  const rows=[['Огноо','Код','Овог нэр','Анги','Шалтгаан','Тэмдэглэл']]
+  if(b)b.forEach(r=>{const s=surCache[r.kod]||{ner:'?',angi:''};rows.push([r.ognoo,r.kod,s.ner,s.angi||'',r.shaltgaan,r.temd||''])})
+  downloadXlsx(rows,'Ирц_'+val)
+  showMsg('msg-export','Татаж авлаа.','ok')
+}
+
+function downloadXlsx(rows,name){
+  const ws=XLSX.utils.aoa_to_sheet(rows)
+  const wb=XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb,ws,'Бүртгэл')
+  XLSX.writeFile(wb,name+'.xlsx')
+}
+
+// ===== НУУЦ ҮГ СОЛИХ =====
+async function changePassword(){
+  const username=document.getElementById('pw-user').value
+  const newpw=document.getElementById('pw-new').value.trim()
+  if(!newpw||newpw.length<4){showMsg('msg-pw','Нууц үг хамгийн багадаа 4 тэмдэгт байх ёстой.','err');return}
+  showLoad()
+  const {error}=await sb.from('users').update({password_hash:newpw}).eq('username',username)
+  hideLoad()
+  if(error){showMsg('msg-pw','Алдаа: '+error.message,'err');return}
+  document.getElementById('pw-new').value=''
+  showMsg('msg-pw',username+'-н нууц үг солигдлоо.','ok')
+}
+
+// ===== ПРОФАЙЛ =====
+async function openProfile(kod){
+  curProfileKod=kod
+  const s=surCache[kod]||{}
+  document.getElementById('pm-ner').textContent=s.ner||kod
+  document.getElementById('pm-sub').textContent=kod+(s.angi?' · '+s.angi:'')+(s.huvis?' · '+s.huvis:'')
+  const isAdmin=curUser.role==='admin'
+  document.getElementById('pm-tab-edit').style.display=isAdmin?'':'none'
+  pmTab('irc',document.querySelector('.pm-tab'))
+  document.getElementById('profile-overlay').style.display='flex'
+  document.body.style.overflow='hidden'
+}
+
+function closeProfile(){
+  document.getElementById('profile-overlay').style.display='none'
+  document.body.style.overflow=''
+  curProfileKod=null
+}
+function closeProfileOut(e){if(e.target===document.getElementById('profile-overlay'))closeProfile()}
+
+function pmTab(tab,el){
+  document.querySelectorAll('.pm-tab').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  document.querySelectorAll('.pm-section').forEach(s=>s.style.display='none')
+  document.getElementById('pm-'+tab).style.display='block'
+  if(tab==='irc')renderPmIrc()
+  if(tab==='zorc')renderPmZorc()
+  if(tab==='keis')renderPmKeis()
+  if(tab==='edit')renderPmEdit()
+}
+
+async function renderPmIrc(){
+  const k=curProfileKod
+  showLoad()
+  const {data:recs}=await sb.from('burtgel').select('*').eq('kod',k).order('ognoo',{ascending:false})
+  hideLoad()
+  const tots={хоцорсон:0,тасалсан:0,'өвчтэй':0}
+  if(recs)recs.forEach(b=>tots[b.shaltgaan]=(tots[b.shaltgaan]||0)+1)
+  const canDel=curUser.role==='admin'
+  document.getElementById('pm-irc').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'+
+      '<div class="stat-card"><div class="stat-num stat-hots">'+tots.хоцорсон+'</div><div class="stat-lbl">Хоцорсон</div></div>'+
+      '<div class="stat-card"><div class="stat-num stat-tas">'+tots.тасалсан+'</div><div class="stat-lbl">Тасалсан</div></div>'+
+      '<div class="stat-card"><div class="stat-num stat-ovch">'+tots['өвчтэй']+'</div><div class="stat-lbl">Өвчтэй</div></div>'+
+    '</div>'+
+    (recs&&recs.length?'<div class="record-block">'+recs.map(r=>'<div class="record-row"><div>'+
+      '<span style="font-size:12px;color:#888;margin-right:8px">'+r.ognoo+'</span>'+badge(r.shaltgaan)+
+      (r.temd?'<span style="font-size:12px;color:#666;margin-left:8px">'+r.temd+'</span>':'')+
+    '</div>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgelPm('+r.id+')">×</button>':'')+
+    '</div>').join('')+'</div>':'<p class="empty">Ирцийн бүртгэл байхгүй.</p>')
+}
+
+async function deleteBurtgelPm(id){
+  if(curUser.role!=='admin')return
+  showLoad();await sb.from('burtgel').delete().eq('id',id);hideLoad()
+  renderPmIrc();updateHeaderStats()
+}
+
+async function renderPmZorc(){
+  const k=curProfileKod
+  showLoad()
+  const {data:zorcs}=await sb.from('zorchil').select('*').eq('kod',k).order('ognoo',{ascending:false})
+  hideLoad()
+  const canEdit=curUser.role==='admin'
+  document.getElementById('pm-zorc').innerHTML=
+    (canEdit?'<div class="pm-add-form" style="margin-bottom:14px">'+
+      '<p style="font-size:12px;font-weight:600;color:#555;margin-bottom:10px;text-transform:uppercase">Зөрчил нэмэх</p>'+
+      '<div class="row" style="margin-bottom:10px">'+
+        '<div><label>Огноо</label><input type="date" id="z-ognoo" value="'+today+'"></div>'+
+        '<div><label>Төрөл</label><select id="z-torol"><option>Сургуулийн дүрэм зөрчих</option><option>Бусдыг дарамтлах</option><option>Хичээлийн үеэр тасалдуулах</option><option>Эд хөрөнгөд хохирол</option><option>Бусад</option></select></div>'+
+      '</div>'+
+      '<div style="margin-bottom:10px"><label>Тайлбар</label><textarea id="z-tailbar" style="height:56px"></textarea></div>'+
+      '<div style="margin-bottom:10px"><label>Авсан арга хэмжээ</label><input type="text" id="z-arha" placeholder="жнь: Эцэг эхтэй уулзалт"></div>'+
+      '<button class="btn btn-primary btn-sm" onclick="nemehZorc()">+ Нэмэх</button>'+
+    '</div>':'<p style="font-size:13px;color:#888;margin-bottom:12px">Зөвхөн харах эрхтэй.</p>')+
+    (zorcs&&zorcs.length?zorcs.map(z=>'<div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+        '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#888">'+z.ognoo+'</span><span class="zorc-badge">'+z.torol+'</span></div>'+
+        (canEdit?'<button class="btn-danger-sm" onclick="deleteZorc('+z.id+')">×</button>':'')+
+      '</div>'+
+      (z.tailbar?'<p style="font-size:13px;color:#333;margin-bottom:4px">'+z.tailbar+'</p>':'')+
+      (z.arha?'<p style="font-size:12px;color:#0f766e">→ '+z.arha+'</p>':'')+
+    '</div>').join(''):'<p class="empty">Зөрчлийн бүртгэл байхгүй.</p>')
+}
+
+async function nemehZorc(){
+  const k=curProfileKod
+  showLoad()
+  await sb.from('zorchil').insert({kod:k,ognoo:document.getElementById('z-ognoo').value,torol:document.getElementById('z-torol').value,tailbar:document.getElementById('z-tailbar').value.trim(),arha:document.getElementById('z-arha').value.trim()})
+  hideLoad();renderPmZorc()
+}
+async function deleteZorc(id){showLoad();await sb.from('zorchil').delete().eq('id',id);hideLoad();renderPmZorc()}
+
+async function renderPmKeis(){
+  const k=curProfileKod
+  showLoad()
+  const {data:keisud}=await sb.from('keis').select('*').eq('kod',k).order('ognoo',{ascending:false})
+  hideLoad()
+  const canEdit=curUser.role==='admin'
+  document.getElementById('pm-keis').innerHTML=
+    (canEdit?'<div class="pm-add-form" style="margin-bottom:14px">'+
+      '<p style="font-size:12px;font-weight:600;color:#555;margin-bottom:10px;text-transform:uppercase">Кейс нэмэх</p>'+
+      '<div class="row" style="margin-bottom:10px">'+
+        '<div><label>Нээсэн огноо</label><input type="date" id="k-ognoo" value="'+today+'"></div>'+
+        '<div><label>Төрөл</label><select id="k-torol"><option>Сурлагын дэмжлэг</option><option>Гэр бүлийн асуудал</option><option>Зан үйлийн зөрчил</option><option>Хүүхэд хамгааллын асуудал</option><option>Сэтгэл зүйн дэмжлэг</option><option>Бусад</option></select></div>'+
+      '</div>'+
+      '<div style="margin-bottom:10px"><label>Тайлбар</label><textarea id="k-tailbar" style="height:56px"></textarea></div>'+
+      '<button class="btn btn-primary btn-sm" onclick="nemehKeis()">+ Нэмэх</button>'+
+    '</div>':'<p style="font-size:13px;color:#888;margin-bottom:12px">Зөвхөн харах эрхтэй.</p>')+
+    (keisud&&keisud.length?keisud.map(keis=>'<div style="padding:12px;border:1px solid #eee;border-radius:8px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:12px;color:#888">'+keis.ognoo+'</span>'+
+          '<span class="'+(keis.status==='хаалттай'?'keis-badge-closed':'keis-badge-open')+'">'+keis.torol+'</span>'+
+          '<span class="'+(keis.status==='хаалттай'?'keis-badge-closed':'keis-badge-open')+'">'+(keis.status||'нээлттэй')+'</span>'+
+        '</div>'+
+        (canEdit?'<div style="display:flex;gap:6px">'+
+          '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 8px" onclick="toggleKeis('+keis.id+')">'+(keis.status==='хаалттай'?'Дахин нээх':'Хаах')+'</button>'+
+          '<button class="btn-danger-sm" onclick="deleteKeis('+keis.id+')">×</button>'+
+        '</div>':'')+
+      '</div>'+
+      (keis.tailbar?'<p style="font-size:13px;color:#444">'+keis.tailbar+'</p>':'')+
+    '</div>').join(''):'<p class="empty">Кейс байхгүй.</p>')
+}
+
+async function nemehKeis(){
+  const k=curProfileKod
+  showLoad()
+  await sb.from('keis').insert({kod:k,ognoo:document.getElementById('k-ognoo').value,torol:document.getElementById('k-torol').value,tailbar:document.getElementById('k-tailbar').value.trim(),status:'нээлттэй'})
+  hideLoad();renderPmKeis()
+}
+async function toggleKeis(id){
+  const {data}=await sb.from('keis').select('status').eq('id',id).single()
+  if(data){showLoad();await sb.from('keis').update({status:data.status==='хаалттай'?'нээлттэй':'хаалттай'}).eq('id',id);hideLoad();renderPmKeis()}
+}
+async function deleteKeis(id){showLoad();await sb.from('keis').delete().eq('id',id);hideLoad();renderPmKeis()}
+
+async function renderPmEdit(){
+  if(curUser.role!=='admin'){document.getElementById('pm-edit').innerHTML='<p class="empty">Зөвхөн админ засварлах боломжтой.</p>';return}
+  const k=curProfileKod
+  showLoad()
+  const {data:s}=await sb.from('suragchid').select('*').eq('kod',k).single()
+  hideLoad()
+  if(!s){document.getElementById('pm-edit').innerHTML='<p class="empty">Мэдээлэл олдсонгүй.</p>';return}
+  document.getElementById('pm-edit').innerHTML=
+    '<div>'+
+      '<div class="row" style="margin-bottom:12px">'+
+        '<div class="field"><label>Овог нэр</label><input type="text" id="e-ner" value="'+(s.ner||'')+'"></div>'+
+        '<div class="field"><label>Анги</label><input type="text" id="e-angi" value="'+(s.angi||'')+'"></div>'+
+      '</div>'+
+      '<div class="row" style="margin-bottom:12px">'+
+        '<div class="field"><label>Төрсөн огноо</label><input type="date" id="e-tognoo" value="'+(s.tognoo||'')+'"></div>'+
+        '<div class="field"><label>Хүйс</label><select id="e-huvis"><option value="" '+(s.huvis?'':'selected')+'>—</option><option '+(s.huvis==='Эрэгтэй'?'selected':'')+'>Эрэгтэй</option><option '+(s.huvis==='Эмэгтэй'?'selected':'')+'>Эмэгтэй</option></select></div>'+
+      '</div>'+
+      '<div class="row" style="margin-bottom:12px">'+
+        '<div class="field"><label>Утас</label><input type="text" id="e-utas" value="'+(s.utas||'')+'"></div>'+
+        '<div class="field"><label>Гэрийн хаяг</label><input type="text" id="e-hayag" value="'+(s.hayag||'')+'"></div>'+
+      '</div>'+
+      '<div style="border-top:1px solid #f0f0f0;padding-top:12px;margin-bottom:12px">'+
+        '<p style="font-size:12px;font-weight:600;color:#555;text-transform:uppercase;margin-bottom:10px">Эцэг эхийн мэдээлэл</p>'+
+        '<div class="row" style="margin-bottom:10px">'+
+          '<div class="field"><label>Нэр</label><input type="text" id="e-eh-ner" value="'+(s.eh_ner||'')+'"></div>'+
+          '<div class="field"><label>Утас</label><input type="text" id="e-eh-utas" value="'+(s.eh_utas||'')+'"></div>'+
+        '</div>'+
+        '<div class="field"><label>Нэмэлт утас</label><input type="text" id="e-eh-utas2" value="'+(s.eh_utas2||'')+'"></div>'+
+      '</div>'+
+      '<button class="btn btn-primary" id="save-btn" onclick="savePmEdit()">💾 Хадгалах</button>'+
+    '</div>'
+}
+
+async function savePmEdit(){
+  const k=curProfileKod
+  const upd={
+    ner:document.getElementById('e-ner').value.trim(),
+    angi:document.getElementById('e-angi').value.trim(),
+    tognoo:document.getElementById('e-tognoo').value||null,
+    huvis:document.getElementById('e-huvis').value,
+    utas:document.getElementById('e-utas').value.trim(),
+    hayag:document.getElementById('e-hayag').value.trim(),
+    eh_ner:document.getElementById('e-eh-ner').value.trim(),
+    eh_utas:document.getElementById('e-eh-utas').value.trim(),
+    eh_utas2:document.getElementById('e-eh-utas2').value.trim()
+  }
+  showLoad()
+  const {error}=await sb.from('suragchid').update(upd).eq('kod',k)
+  hideLoad()
+  if(error){alert('Алдаа: '+error.message);return}
+  Object.assign(surCache[k],upd)
+  document.getElementById('pm-ner').textContent=upd.ner
+  document.getElementById('pm-sub').textContent=k+(upd.angi?' · '+upd.angi:'')+(upd.huvis?' · '+upd.huvis:'')
+  renderSuragchid()
+  updateAngiFilter()
+  const btn=document.getElementById('save-btn')
+  if(btn){btn.textContent='✓ Хадгалагдлаа';setTimeout(()=>btn.innerHTML='💾 Хадгалах',1800)}
+}
+</script>
+</body>
+</html>
