@@ -723,11 +723,15 @@ async function nemehBurtgel(){
   const temd=document.getElementById('b-temd').value.trim()
   if(!kod||!surCache[kod]){showMsg('msg-burgel','Зөв код оруулна уу.','err');return}
   if(!ognoo){showMsg('msg-burgel','Огноо оруулна уу.','err');return}
+  // Хоцорсон үед цаг минут автоматаар бүртгэнэ
+  const now=new Date()
+  const tsag=shaltgaan==='хоцорсон'?(String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')):null
   showLoad()
-  const {error}=await sb.from('burtgel').insert({kod,ognoo,shaltgaan,temd})
+  const {error}=await sb.from('burtgel').insert({kod,ognoo,shaltgaan,temd,tsag})
   hideLoad()
   if(error){showMsg('msg-burgel','Алдаа: '+error.message,'err');return}
-  showMsg('msg-burgel',surCache[kod].ner+' ('+kod+') — амжилттай бүртгэгдлээ.','ok')
+  const tsagTxt=tsag?' ('+tsag+')':''
+  showMsg('msg-burgel',surCache[kod].ner+' ('+kod+')'+tsagTxt+' — амжилттай бүртгэгдлээ.','ok')
   document.getElementById('b-temd').value=''
   renderToday()
   updateHeaderStats()
@@ -743,7 +747,8 @@ async function renderToday(){
     data.map(b=>{
       const s=surCache[b.kod]||{ner:'?',angi:''}
       const canDel=curUser.role==='admin'
-      return '<tr><td><span class="code-pill">'+b.kod+'</span></td><td>'+s.ner+'</td><td>'+(s.angi||'—')+'</td><td>'+badge(b.shaltgaan)+'</td><td style="color:#777;font-size:12px">'+(b.temd||'—')+'</td><td>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgel('+b.id+',\'today\')">×</button>':'')+'</td></tr>'
+      const tsagHtml=b.tsag?'<span style="font-size:11px;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:10px;margin-left:4px">🕐'+b.tsag+'</span>':''
+      return '<tr><td><span class="code-pill">'+b.kod+'</span></td><td>'+s.ner+'</td><td>'+(s.angi||'—')+'</td><td>'+badge(b.shaltgaan)+tsagHtml+'</td><td style="color:#777;font-size:12px">'+(b.temd||'—')+'</td><td>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgel('+b.id+',\'today\')">×</button>':'')+'</td></tr>'
     }).join('')+'</tbody></table>'
 }
 
@@ -792,6 +797,7 @@ async function hailt(){
       '</div>'+
       (allRecs.length?'<div class="record-block">'+allRecs.map(r=>'<div class="record-row"><div>'+
         '<span style="font-size:12px;color:#888;margin-right:8px">'+r.ognoo+'</span>'+badge(r.shaltgaan)+
+        (r.tsag?'<span style="font-size:11px;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:10px;margin-left:4px">🕐'+r.tsag+'</span>':'')+
         (r.temd?'<span style="font-size:12px;color:#666;margin-left:8px">'+r.temd+'</span>':'')+
       '</div>'+(canDel?'<button class="btn-danger-sm" onclick="deleteBurtgel('+r.id+',\'hailt\')">×</button>':'')+
       '</div>').join('')+'</div>':'<p style="font-size:13px;color:#999;padding:8px 0">Бүртгэл байхгүй.</p>')+
